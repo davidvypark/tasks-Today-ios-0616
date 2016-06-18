@@ -10,6 +10,9 @@
 
 @interface FISViewController : UIViewController
 
+@property (strong, nonatomic)NSArray *nextYearArray;
+@property (strong, nonatomic)NSArray *lastYearArray;
+
 - (NSArray *)getNextYearsEvents;
 - (NSArray *)getLastYearsEvents;
 - (void)requestCalendarPermission;

@@ -8,6 +8,7 @@
 
 #import "FISViewController.h"
 #import <EventKit/EventKit.h>
+#import "FISEventDetailViewController.h"
 
 @interface FISViewController ()
 
@@ -15,11 +16,38 @@
 
 @implementation FISViewController
 
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    
+    FISEventDetailViewController *destinationVC = [segue destinationViewController];
+    
+    if ([segue.identifier isEqualToString:@"lastYear"]) {
+        destinationVC.inputArray = self.lastYearArray;
+        
+    } else if ([segue.identifier isEqualToString:@"nextYear"]) {
+        destinationVC.inputArray = self.nextYearArray;
+        
+    }
+    
+    
+}
+
+- (IBAction)nextYearButtonPressed:(id)sender {
+    
+    self.nextYearArray = [self getNextYearsEvents];
+}
+
+- (IBAction)lastYearButtonPressed:(id)sender {
+    
+    self.lastYearArray = [self getLastYearsEvents];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     [self requestCalendarPermission];
     [self getLastYearsEvents];
+    
+    
 
 }
 
@@ -29,16 +57,63 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (NSArray *)getNextYearsEvents {
-    return @[];
+- (void)requestCalendarPermission
+{
+    EKEventStore *store = [[EKEventStore alloc] init];
+    [store requestAccessToEntityType:EKEntityTypeEvent completion:^(BOOL granted, NSError *error) {
+        
+    }];
 }
 
-- (NSArray *)getLastYearsEvents {
-    return @[];
-}
-
-- (void)requestCalendarPermission {
+- (NSArray *)getNextYearsEvents
+{
     
+    EKEventStore *store = [[EKEventStore alloc] init];
+    // Get the appropriate calendar
+    NSCalendar *calendar = [NSCalendar currentCalendar];
+    
+    
+    // Create the end date components
+    NSDateComponents *oneYearFromNowComponents = [[NSDateComponents alloc] init];
+    oneYearFromNowComponents.year = 1;
+    NSDate *oneYearFromNow = [calendar dateByAddingComponents:oneYearFromNowComponents
+                                                       toDate:[NSDate date]
+                                                      options:0];
+    
+    // Create the predicate from the event store's instance method
+    NSPredicate *predicate = [store predicateForEventsWithStartDate:[NSDate date]
+                                                            endDate:oneYearFromNow
+                                                          calendars:nil];
+    
+    // Fetch all events that match the predicate
+    NSArray *events = [store eventsMatchingPredicate:predicate];
+    return events;
+}
+
+- (NSArray *)getLastYearsEvents
+{
+    
+    EKEventStore *store = [[EKEventStore alloc] init];
+    // Get the appropriate calendar
+    NSCalendar *calendar = [NSCalendar currentCalendar];
+    
+    // Create the start date components
+    
+    // Create the end date components
+    NSDateComponents *oneYearFromNowComponents = [[NSDateComponents alloc] init];
+    oneYearFromNowComponents.year = -1;
+    NSDate *oneYearFromNow = [calendar dateByAddingComponents:oneYearFromNowComponents
+                                                       toDate:[NSDate date]
+                                                      options:0];
+    
+    // Create the predicate from the event store's instance method
+    NSPredicate *predicate = [store predicateForEventsWithStartDate:oneYearFromNow
+                                                            endDate:[NSDate date]
+                                                          calendars:nil];
+    
+    // Fetch all events that match the predicate
+    NSArray *events = [store eventsMatchingPredicate:predicate];
+    return events;
 }
 
 
